@@ -46,6 +46,8 @@ Thumbs.db
 
 # Local scratch assets not needed in repo
 attached_assets/
+another-website/assets/tmp/
+another-website/node_modules/
 
 # Logs
 *.log
