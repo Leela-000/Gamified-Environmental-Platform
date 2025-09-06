@@ -216,6 +216,15 @@
   .shadow-orange {
     box-shadow: 0 10px 30px hsla(25, 95%, 53%, 0.4);
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {
