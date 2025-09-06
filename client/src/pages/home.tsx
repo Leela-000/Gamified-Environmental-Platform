@@ -2,7 +2,8 @@ import { Globe3D } from "@/components/Globe3D";
 import { TopicCards } from "@/components/TopicCards";
 import { SocialSidebar } from "@/components/SocialSidebar";
 import { Button } from "@/components/ui/button";
-import { Play, Check } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Play, Menu } from "lucide-react";
 
 export default function Home() {
   const handleWatchVideo = () => {
@@ -16,9 +17,32 @@ export default function Home() {
       <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-earth-orange rounded-lg flex items-center justify-center">
-              <Check className="h-4 w-4 text-white" />
-            </div>
+            {/* Left hamburger launcher for the slide-out panel */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <button
+                  aria-label="Open integrations panel"
+                  className="w-9 h-9 bg-earth-orange hover:bg-earth-orange-hover rounded-lg flex items-center justify-center shadow-orange transition-colors"
+                >
+                  <Menu className="h-5 w-5 text-white" />
+                </button>
+              </SheetTrigger>
+
+              <SheetContent side="left" className="bg-[var(--earth-card)] border-[var(--earth-border)] text-white">
+                <SheetHeader>
+                  <SheetTitle>Side Panel</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 space-y-4">
+                  <p className="text-earth-muted text-sm">
+                    This panel will host elements from the other website. Tell me what to add and where.
+                  </p>
+                  <div className="grid gap-3">
+                    <Button className="bg-earth-orange hover:bg-earth-orange-hover justify-start">Sample action</Button>
+                    <Button variant="secondary" className="justify-start">Placeholder item</Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
           <nav className="flex space-x-6 md:space-x-8">
             <a 
