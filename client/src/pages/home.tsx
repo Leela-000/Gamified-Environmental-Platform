@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Play, Menu } from "lucide-react";
 import { Link } from "wouter";
+import { useState } from "react";
 
 export default function Home() {
+  const [globalTint, setGlobalTint] = useState<null | "signin" | "signup">(null);
   const handleWatchVideo = () => {
     // TODO: Implement video player or navigation
     console.log("Watch video clicked");
@@ -15,11 +17,22 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-space-gradient text-white relative overflow-hidden">
       {/* Header */}
+      {/* Full-screen hover tint for Sign In / Sign Up */}
+      <div
+        className={`fixed inset-0 z-30 pointer-events-none transition-opacity duration-300 ${
+          globalTint === "signin"
+            ? "bg-[var(--earth-cyan)]/35 opacity-100"
+            : globalTint === "signup"
+            ? "bg-earth-orange/40 opacity-100"
+            : "opacity-0"
+        }`}
+      />
+
       <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-2">
             {/* Left hamburger launcher for the slide-out panel */}
-            <Sheet>
+            <Sheet onOpenChange={(open) => !open && setGlobalTint(null)}>
               <SheetTrigger asChild>
                 <button
                   aria-label="Open integrations panel"
@@ -33,52 +46,69 @@ export default function Home() {
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="mt-4 grid gap-2">
+                <nav className="mt-4 grid gap-3">
+                  {/* White tiles */}
                   <SheetClose asChild>
                     <Link href="/">
-                      <Button className="w-full justify-start bg-earth-orange hover:bg-earth-orange-hover">Home</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Home</Button>
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <Link href="/about">
-                      <Button variant="secondary" className="w-full justify-start">About Project</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">About Project</Button>
                     </Link>
                   </SheetClose>
-                  <div className="grid grid-cols-2 gap-2">
+
+                  {/* Sign In / Sign Up colored with fullscreen hover tint */}
+                  <div className="grid grid-cols-2 gap-3">
                     <SheetClose asChild>
                       <Link href="/signin">
-                        <Button variant="outline" className="w-full justify-start">Sign In</Button>
+                        <Button
+                          className="w-full justify-center rounded-2xl bg-[var(--earth-cyan)] text-white hover:bg-[var(--earth-cyan)]/90"
+                          onMouseEnter={() => setGlobalTint("signin")}
+                          onMouseLeave={() => setGlobalTint(null)}
+                        >
+                          Sign In
+                        </Button>
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
                       <Link href="/signup">
-                        <Button variant="outline" className="w-full justify-start">Sign Up</Button>
+                        <Button
+                          className="w-full justify-center rounded-2xl bg-earth-orange text-white hover:bg-earth-orange-hover"
+                          onMouseEnter={() => setGlobalTint("signup")}
+                          onMouseLeave={() => setGlobalTint(null)}
+                        >
+                          Sign Up
+                        </Button>
                       </Link>
                     </SheetClose>
                   </div>
+
+                  {/* Remaining white tiles */}
                   <SheetClose asChild>
                     <Link href="/games">
-                      <Button variant="secondary" className="w-full justify-start">Games</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Games</Button>
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <Link href="/quizzes">
-                      <Button variant="secondary" className="w-full justify-start">Quizzes</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Quizzes</Button>
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <Link href="/leaderboard">
-                      <Button variant="secondary" className="w-full justify-start">Leaderboard</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Leaderboard</Button>
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <Link href="/tasks">
-                      <Button variant="secondary" className="w-full justify-start">Tasks</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Tasks</Button>
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <Link href="/contact">
-                      <Button variant="secondary" className="w-full justify-start">Contact & Help</Button>
+                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Contact & Help</Button>
                     </Link>
                   </SheetClose>
                 </nav>
