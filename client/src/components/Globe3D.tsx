@@ -24,7 +24,7 @@ export function Globe3D() {
       alpha: true
     });
 
-    renderer.setSize(600, 600);
+    renderer.setSize(400, 400);
     renderer.setClearColor(0x000000, 0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -38,7 +38,7 @@ export function Globe3D() {
       '/api/models/earth.glb',
       (gltf) => {
         const earthModel = gltf.scene;
-        earthModel.scale.setScalar(1.8);
+        earthModel.scale.setScalar(1.2);
         earthModel.position.set(0, 0, 0);
         
         // Enable shadows
@@ -205,8 +205,8 @@ export function Globe3D() {
   return (
     <canvas
       ref={canvasRef}
-      width={600}
-      height={600}
+      width={400}
+      height={400}
       className="rounded-full shadow-globe cursor-grab active:cursor-grabbing"
       data-testid="canvas-globe"
     />
