@@ -2,8 +2,9 @@ import { Globe3D } from "@/components/Globe3D";
 import { TopicCards } from "@/components/TopicCards";
 import { SocialSidebar } from "@/components/SocialSidebar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Play, Menu } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Home() {
   const handleWatchVideo = () => {
@@ -30,17 +31,57 @@ export default function Home() {
 
               <SheetContent side="left" className="bg-[var(--earth-card)] border-[var(--earth-border)] text-white">
                 <SheetHeader>
-                  <SheetTitle>Side Panel</SheetTitle>
+                  <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-4 space-y-4">
-                  <p className="text-earth-muted text-sm">
-                    This panel will host elements from the other website. Tell me what to add and where.
-                  </p>
-                  <div className="grid gap-3">
-                    <Button className="bg-earth-orange hover:bg-earth-orange-hover justify-start">Sample action</Button>
-                    <Button variant="secondary" className="justify-start">Placeholder item</Button>
+                <nav className="mt-4 grid gap-2">
+                  <SheetClose asChild>
+                    <Link href="/">
+                      <Button className="w-full justify-start bg-earth-orange hover:bg-earth-orange-hover">Home</Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link href="/about">
+                      <Button variant="secondary" className="w-full justify-start">About Project</Button>
+                    </Link>
+                  </SheetClose>
+                  <div className="grid grid-cols-2 gap-2">
+                    <SheetClose asChild>
+                      <Link href="/signin">
+                        <Button variant="outline" className="w-full justify-start">Sign In</Button>
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link href="/signup">
+                        <Button variant="outline" className="w-full justify-start">Sign Up</Button>
+                      </Link>
+                    </SheetClose>
                   </div>
-                </div>
+                  <SheetClose asChild>
+                    <Link href="/games">
+                      <Button variant="secondary" className="w-full justify-start">Games</Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link href="/quizzes">
+                      <Button variant="secondary" className="w-full justify-start">Quizzes</Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link href="/leaderboard">
+                      <Button variant="secondary" className="w-full justify-start">Leaderboard</Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link href="/tasks">
+                      <Button variant="secondary" className="w-full justify-start">Tasks</Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link href="/contact">
+                      <Button variant="secondary" className="w-full justify-start">Contact & Help</Button>
+                    </Link>
+                  </SheetClose>
+                </nav>
               </SheetContent>
             </Sheet>
           </div>
