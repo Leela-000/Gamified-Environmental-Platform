@@ -1,0 +1,95 @@
+Perfect 👍 thanks for clarifying. Now I understand — you don’t want the **entire project prompt**, but specifically the **landing page hero section** (with the globe + collaboration design like in your screenshot).
+
+Let me **break it down so you (or an AI builder) can recreate it exactly**:
+
+---
+
+## 🌍 Landing Page (Hero Section) Breakdown
+
+### 1. **Main Layout**
+
+* **Full-screen background** → gradient deep blue (space-like).
+
+* **Centerpiece** → 3D **Earth model** (rotatable).
+
+* **Left Side (Text Block):**
+
+  * Large bold headline: *“Save the Earth”*
+  * Subtext: 2–3 lines (about climate change, global warming, etc.).
+  * CTA Button: *“Watch Video”* (with an icon).
+
+* **Right Side (Vertical List of Topics/Chapters):**
+
+  * Example items:
+
+    * Save the Ocean 🌊
+    * Climate Change 🌡️
+    * Arctic is Calling ❄️
+    * Quench the Thirsty 💧
+    * (…extendable list)
+  * Each has a **thumbnail image + title**.
+  * On hover → thumbnail enlarges slightly, glowing border.
+
+* **Top Right:**
+
+  * Navigation → “About” | “Contact”
+
+* **Left Vertical Bar:**
+
+  * Social icons (Instagram, Twitter, Facebook).
+
+---
+
+### 2. **3D Globe (Hero Element)**
+
+* Format: `.glb` Earth model.
+* Features:
+
+  * **Idle slow rotation**.
+  * **Interactive drag** to rotate manually.
+  * **Subtle glow/atmosphere** effect around the Earth.
+  * **Cloud texture layer** slowly moving.
+
+---
+
+### 3. **Animations**
+
+* Globe rotates smoothly.
+* When user scrolls → hero shrinks slightly, next section fades in.
+* Thumbnails on the right → animate in with fade + slide.
+* Hover on “Watch Video” → button glow/pulse.
+
+---
+
+### 4. **Tech Notes**
+
+* **Three.js or React Three Fiber** for globe rendering.
+* **GSAP / Framer Motion** for smooth animations.
+* **Responsive Design** → mobile view: text moves below globe, list becomes horizontal slider.
+
+---
+
+## 📝 Example Prompt for AI (just the hero page)
+
+> I uploaded a 3D Earth model (`earth.glb`) and a reference screenshot.
+> Please build a **landing page hero section** that matches the design.
+>
+> **Requirements:**
+>
+> * Fullscreen hero section with deep blue gradient background.
+> * Center: interactive 3D globe (rotatable, idle rotation, glowing atmosphere, clouds).
+> * Left: Large heading “Save the Earth”, small subtext (about climate issues), and a CTA button (“Watch Video”).
+> * Right: Vertical list of 4–5 cards with image + text (e.g., Save the Ocean, Climate Change). Hover enlarges the card.
+> * Top right: simple nav (About, Contact).
+> * Left vertical bar: social media icons.
+> * Smooth animations (fade-in, hover effects, globe rotation).
+> * Use React + Three.js (React Three Fiber) or Three.js vanilla.
+> * Responsive for mobile (stacked layout).
+>
+> Style = clean, futuristic, same as screenshot.
+
+---
+
+👉 This way, AI/dev knows **you only want the hero landing page with the Earth + sidebar content**, not the full platform.
+
+Do you want me to also **sketch a wireframe mockup** (simple box layout) so you can visualize the structure before building?
