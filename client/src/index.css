@@ -1,3 +1,4 @@
+/* PostCSS with Tailwind CSS */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -50,6 +51,12 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  /* Globe size controls (adjust here) */
+  --globe-size: 560px;        /* base */
+  --globe-size-md: 640px;     /* ≥768px */
+  --globe-size-lg: 800px;     /* ≥1024px */
+  --globe-size-xl: 900px;     /* ≥1280px */
 
   /* Custom Earth theme colors */
   --earth-blue-dark: hsl(220 90% 12%);
@@ -129,21 +136,62 @@
   }
 
   .bg-space-gradient::before {
+    /* Disable global aura to avoid any oval effect */
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at center, transparent 30%, hsla(220, 90%, 12%, 0.3) 100%);
+    inset: 0;
+    background: none;
+    display: none;
     pointer-events: none;
   }
 
   .globe-container {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: var(--globe-size);
+    height: var(--globe-size);
     margin: 0 auto;
+    isolation: isolate; /* contain z-index stacking */
+    overflow: visible;  /* allow soft glow to extend slightly */
+  }
+
+  /* Circular halo around the globe (kept behind the canvas) */
+  .globe-container::before {
+    content: '';
+    position: absolute;
+    inset: 0; /* tight to square container to guarantee a perfect circle */
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, hsla(200, 80%, 60%, 0.35) 30%, hsla(200, 80%, 60%, 0.18) 55%, transparent 72%);
+    filter: blur(14px);
+    z-index: -1; /* behind the canvas */
+    pointer-events: none;
+  }
+
+  /* Ensure the canvas visually fills the container */
+  .globe-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    .globe-container {
+      width: var(--globe-size-md);
+      height: var(--globe-size-md);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .globe-container {
+      width: var(--globe-size-lg);
+      height: var(--globe-size-lg);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .globe-container {
+      width: var(--globe-size-xl);
+      height: var(--globe-size-xl);
+    }
   }
 
   .floating {
@@ -179,9 +227,7 @@
     transition: opacity 0.3s ease;
   }
 
-  .topic-card:hover::before {
-    opacity: 1;
-  }
+  .topic-card:hover::before { opacity: 1; }
 
   .topic-card:hover {
     box-shadow: 0 20px 40px hsla(220, 90%, 12%, 0.5), 0 0 20px hsla(200, 80%, 60%, 0.2);
@@ -192,14 +238,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     background: var(--earth-social);
     border: 1px solid var(--earth-border);
     border-radius: 50%;
     color: var(--earth-muted);
     transition: all 0.3s ease;
     text-decoration: none;
+  }
+
+  @media (min-width: 768px) {
+    .social-icon {
+      width: 48px;
+      height: 48px;
+    }
   }
 
   .social-icon:hover {

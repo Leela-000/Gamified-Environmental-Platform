@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -50,7 +50,7 @@ const topics: TopicCard[] = [
     id: 'wildlife',
     title: 'Protect',
     subtitle: 'Wildlife',
-    imageUrl: 'https://images.unsplash.com/photo-1549366021-9f761d040a94?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400',
+    imageUrl: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400',
     alt: 'Wildlife protection - endangered species conservation'
   },
   {
@@ -99,6 +99,12 @@ export function TopicCards() {
     }
   };
 
+  // Initialize scroll button states on mount
+  useEffect(() => {
+    handleScroll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="relative">
       {/* Scroll Up Button */}
@@ -115,18 +121,18 @@ export function TopicCards() {
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="space-y-4 max-h-[480px] overflow-y-auto scrollbar-hide pr-2"
+  className="space-y-3 max-h-[70vh] md:max-h-[78vh] overflow-y-auto scrollbar-hide pr-1"
         data-testid="scroll-container-topics"
       >
         {topics.map((topic) => (
           <div
             key={topic.id}
             onClick={() => handleTopicClick(topic.id)}
-            className="topic-card p-4 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-[-8px] hover:scale-[1.02]"
+            className="topic-card p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-[-6px] hover:scale-[1.01]"
             data-testid={`card-topic-${topic.id}`}
           >
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
                 <img 
                   src={topic.imageUrl} 
                   alt={topic.alt}
@@ -135,7 +141,7 @@ export function TopicCards() {
                 />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-lg">
+                <h3 className="text-white font-semibold text-base md:text-lg">
                   {topic.title}<br />
                   {topic.subtitle}
                 </h3>

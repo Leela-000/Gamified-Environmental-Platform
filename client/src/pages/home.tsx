@@ -13,14 +13,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-space-gradient text-white relative overflow-hidden">
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 p-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
+        <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-earth-orange rounded-lg flex items-center justify-center">
               <Check className="h-4 w-4 text-white" />
             </div>
           </div>
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-6 md:space-x-8">
             <a 
               href="#" 
               className="text-white hover:text-earth-cyan transition-colors duration-300 font-medium"
@@ -43,17 +43,18 @@ export default function Home() {
       <SocialSidebar />
 
       {/* Main Content */}
-      <main className="min-h-screen flex items-center justify-between px-20 py-20">
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-12 gap-8 items-center">
+      {/* Main Content */}
+      <main className="min-h-screen flex items-center justify-between pl-20 md:pl-24 lg:pl-28 pr-4 md:pr-8 lg:pr-12 xl:pr-16 py-20">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Hero Text */}
-          <div className="col-span-4 space-y-6">
+          <div className="lg:col-span-3 xl:col-span-4 space-y-6 text-center lg:text-left pl-12 lg:pl-0 relative z-30">
             <div className="space-y-4">
-              <h1 className="text-6xl font-bold text-white leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                 Save the<br />
                 <span className="text-earth-cyan">earth</span>
               </h1>
-              <p className="text-earth-muted text-lg leading-relaxed max-w-md">
+              <p className="text-earth-muted text-base md:text-lg leading-relaxed max-w-md mx-auto lg:mx-0">
                 Join the fight in a race to protect and preserve our planet. From global warming to the protection of endangered wildlife, we cover all topics.
               </p>
             </div>
@@ -68,14 +69,14 @@ export default function Home() {
           </div>
 
           {/* 3D Globe */}
-          <div className="col-span-4 flex justify-center">
-            <div className="globe-container floating">
+          <div className="lg:col-span-6 xl:col-span-5 flex justify-center order-first lg:order-none relative z-0">
+            <div className="globe-container floating lg:-ml-8 xl:-ml-14 2xl:-ml-20 lg:-mt-4 xl:-mt-6 relative z-0">
               <Globe3D />
             </div>
           </div>
 
           {/* Topic Cards */}
-          <div className="col-span-4">
+          <div className="lg:col-span-3 xl:col-span-3 w-full max-w-[420px] xl:max-w-[470px] ml-auto lg:mr-2 xl:mr-4 relative z-30">
             <TopicCards />
           </div>
           

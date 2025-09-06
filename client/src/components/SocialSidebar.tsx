@@ -23,7 +23,7 @@ const socialLinks = [
 
 export function SocialSidebar() {
   return (
-    <aside className="fixed left-6 top-1/2 transform -translate-y-1/2 z-40 flex flex-col space-y-4">
+    <aside className="fixed left-4 md:left-6 lg:left-8 top-1/2 transform -translate-y-1/2 z-30 flex flex-col space-y-3 md:space-y-4">
       {socialLinks.map(({ id, icon: Icon, href, label }) => (
         <a
           key={id}
@@ -32,7 +32,7 @@ export function SocialSidebar() {
           aria-label={label}
           data-testid={`link-social-${id}`}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-4 w-4 md:h-5 md:w-5" />
         </a>
       ))}
     </aside>
