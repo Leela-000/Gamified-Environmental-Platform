@@ -2,9 +2,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const app = express(); // express app
+// Increase body size limits for base64 images
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,6 +38,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure SQLite tables exist
+  const { initDb } = await import('./db');
+  initDb();
+  // Seed default admin account
+  const { DbStorage } = await import('./db-storage');
+  const dbStorage = new DbStorage();
+  await dbStorage.seedAdmin();
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -52,6 +61,16 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
+    // Seed sample tasks for test_teacher if present and no tasks yet
+    try {
+      const { storage } = await import('./storage');
+      const teacher = 'test_teacher';
+      const tasks = await (storage as any).listTeacherTasks(teacher);
+      if (!Array.isArray(tasks) || tasks.length === 0) {
+        await (storage as any).createTask(teacher, { title: 'Recycle Drive', description: 'Collect and sort recyclables.', maxPoints: 8, proofType: 'photo', groupMode: 'group', maxGroupSize: 4 });
+        await (storage as any).createTask(teacher, { title: 'Plant a Tree', description: 'Plant a sapling in your neighborhood.', maxPoints: 10, proofType: 'photo', groupMode: 'solo' });
+      }
+    } catch {}
   } else {
     serveStatic(app);
   }

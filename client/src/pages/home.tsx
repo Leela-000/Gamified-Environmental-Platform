@@ -2,13 +2,14 @@ import { Globe3D } from "@/components/Globe3D";
 import { TopicCards } from "@/components/TopicCards";
 import { SocialSidebar } from "@/components/SocialSidebar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Play, Menu } from "lucide-react";
+import { Play } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth";
 
 export default function Home() {
   const [globalTint, setGlobalTint] = useState<null | "signin" | "signup">(null);
+  const { role, clear } = useAuth();
   const handleWatchVideo = () => {
     // TODO: Implement video player or navigation
     console.log("Watch video clicked");
@@ -28,108 +29,53 @@ export default function Home() {
         }`}
       />
 
-      <header className="absolute top-0 left-0 right-0 z-50 p-4 md:p-6">
+      <header className="absolute top-0 left-0 right-0 z-40 p-4 md:p-6">
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            {/* Left hamburger launcher for the slide-out panel */}
-            <Sheet onOpenChange={(open) => !open && setGlobalTint(null)}>
-              <SheetTrigger asChild>
-                <button
-                  aria-label="Open integrations panel"
-                  className="w-9 h-9 bg-earth-orange hover:bg-earth-orange-hover rounded-lg flex items-center justify-center shadow-orange transition-colors"
-                >
-                  <Menu className="h-5 w-5 text-white" />
-                </button>
-              </SheetTrigger>
-
-              <SheetContent side="left" className="bg-[var(--earth-card)] border-[var(--earth-border)] text-white">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                </SheetHeader>
-                <nav className="mt-4 grid gap-3">
-                  {/* White tiles */}
-                  <SheetClose asChild>
-                    <Link href="/">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Home</Button>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/about">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">About Project</Button>
-                    </Link>
-                  </SheetClose>
-
-                  {/* Sign In / Sign Up colored with fullscreen hover tint */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <SheetClose asChild>
-                      <Link href="/signin">
-                        <Button
-                          className="w-full justify-center rounded-2xl bg-[var(--earth-cyan)] text-white hover:bg-[var(--earth-cyan)]/90"
-                          onMouseEnter={() => setGlobalTint("signin")}
-                          onMouseLeave={() => setGlobalTint(null)}
-                        >
-                          Sign In
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link href="/signup">
-                        <Button
-                          className="w-full justify-center rounded-2xl bg-earth-orange text-white hover:bg-earth-orange-hover"
-                          onMouseEnter={() => setGlobalTint("signup")}
-                          onMouseLeave={() => setGlobalTint(null)}
-                        >
-                          Sign Up
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                  </div>
-
-                  {/* Remaining white tiles */}
-                  <SheetClose asChild>
-                    <Link href="/games">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Games</Button>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/quizzes">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Quizzes</Button>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/leaderboard">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Leaderboard</Button>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/tasks">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Tasks</Button>
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link href="/contact">
-                      <Button className="w-full justify-start rounded-2xl bg-white text-[var(--foreground)] hover:bg-white/90">Contact & Help</Button>
-                    </Link>
-                  </SheetClose>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            {/* Global menu overlay handles navigation; left space kept clean */}
           </div>
-          <nav className="flex space-x-6 md:space-x-8">
-            <a 
-              href="#" 
-              className="text-white hover:text-earth-cyan transition-colors duration-300 font-medium"
-              data-testid="link-about"
-            >
-              About
-            </a>
-            <a 
-              href="#" 
-              className="text-white hover:text-earth-cyan transition-colors duration-300 font-medium"
-              data-testid="link-contact"
-            >
-              Contact
-            </a>
+          <nav className="flex items-center gap-4 md:gap-6">
+            <Link href="/about">
+              <a className="text-white hover:text-earth-cyan transition-colors duration-300 font-medium" data-testid="link-about">
+                About
+              </a>
+            </Link>
+            <Link href="/contact">
+              <a className="text-white hover:text-earth-cyan transition-colors duration-300 font-medium" data-testid="link-contact">
+                Contact
+              </a>
+            </Link>
+            {!role ? (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link href="/signin">
+                  <a
+                    onMouseEnter={() => setGlobalTint("signin")}
+                    onMouseLeave={() => setGlobalTint(null)}
+                    className="px-4 py-2 rounded-lg border border-[var(--earth-border)] bg-[var(--earth-card)] hover:bg-white/5"
+                  >
+                    Sign In
+                  </a>
+                </Link>
+                <Link href="/signup">
+                  <a
+                    onMouseEnter={() => setGlobalTint("signup")}
+                    onMouseLeave={() => setGlobalTint(null)}
+                    className="px-4 py-2 rounded-lg bg-earth-orange hover:bg-earth-orange-hover text-white"
+                  >
+                    Sign Up
+                  </a>
+                </Link>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link href={role === 'student' ? '/student' : role === 'teacher' ? '/teacher' : '/admin'}>
+                  <a className="px-3 py-2 rounded-lg border border-[var(--earth-border)] bg-[var(--earth-card)] hover:bg-white/5">
+                    Open {role === 'student' ? 'Student' : role === 'teacher' ? 'Teacher' : 'Admin'} Portal
+                  </a>
+                </Link>
+                <button onClick={clear} className="px-3 py-2 rounded-lg border border-[var(--earth-border)] bg-[var(--earth-card)] hover:bg-white/5">Logout</button>
+              </div>
+            )}
           </nav>
         </div>
       </header>
