@@ -1,7 +1,6 @@
 {
-  "name": "ecovision-gamified-platform",
+  "name": "rest-express",
   "version": "1.0.0",
-  "description": "A gamified environmental learning platform for educational institutions",
   "type": "module",
   "license": "MIT",
   "scripts": {

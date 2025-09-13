@@ -99,38 +99,82 @@ export default function AdminPortal() {
   };
   if (role !== 'admin') {
     return (
-      <div className="min-h-screen bg-space-gradient text-white p-6 flex flex-col items-center justify-center">
-        <h1 className="text-3xl font-bold mb-4">Admin Portal</h1>
-        <p className="text-earth-muted">Access denied. Please log in as an admin.</p>
+      <div 
+        className="min-h-screen text-white p-6 flex flex-col items-center justify-center relative"
+        style={{
+          backgroundImage: 'url(/api/image/360_F_628835191_EMMgdwXxjtd3yLBUguiz5UrxaxqByvUc.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-8 text-center">
+          <h1 className="text-3xl font-bold mb-4 text-white/90">Admin Portal</h1>
+          <p className="text-white/70">Access denied. Please log in as an admin.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Admin Portal</h1>
-        <Button variant="secondary" onClick={clear}>Logout</Button>
-      </div>
-      <div className="flex gap-4 mb-8">
-        {tabNames.map((name, i) => (
-          <Button key={name} variant={tab === i ? 'default' : 'secondary'} onClick={() => setTab(i)}>{name}</Button>
-        ))}
-      </div>
+    <div 
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: 'url(/api/image/360_F_628835191_EMMgdwXxjtd3yLBUguiz5UrxaxqByvUc.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="relative z-10">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white/90">Admin Portal</h1>
+              <p className="text-white/70 mt-1">System administration and management</p>
+            </div>
+            <Button 
+              variant="secondary" 
+              onClick={clear}
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-6">
+          {tabNames.map((name, i) => (
+            <Button 
+              key={name} 
+              variant={tab === i ? 'default' : 'secondary'} 
+              onClick={() => setTab(i)}
+              className={tab === i ? "bg-white/20 text-white" : "bg-white/10 hover:bg-white/20 text-white border-white/30"}
+            >
+              {name}
+            </Button>
+          ))}
+        </div>
 
       {tab === 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-3">Approval List</h2>
-          <Button className="bg-earth-orange hover:bg-earth-orange-hover mb-4" onClick={approveAll}>Approve All Pending</Button>
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white/90">Approval List</h2>
+          <Button 
+            className="bg-orange-600 hover:bg-orange-700 text-white mb-4" 
+            onClick={approveAll}
+          >
+            Approve All Pending
+          </Button>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section>
-              <h3 className="text-lg font-semibold mb-2">Pending Students</h3>
+              <h3 className="text-lg font-semibold mb-3 text-white/90">Pending Students</h3>
               <div className="space-y-3">
-                {pending.students.length === 0 && <p className="text-earth-muted">No pending students.</p>}
+                {pending.students.length === 0 && <p className="text-white/70">No pending students.</p>}
                 {pending.students.map((s) => (
-                  <div key={s.id} className="p-3 rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)]">
-                    <div className="font-medium">{s.name} (@{s.username})</div>
-                    <div className="text-sm text-earth-muted">{s.email}</div>
+                  <div key={s.id} className="p-4 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30">
+                    <div className="font-medium text-white/90">{s.name} (@{s.username})</div>
+                    <div className="text-sm text-white/70">{s.email}</div>
                     <div className="text-xs text-earth-muted mt-1">School: {s.schoolId} • Student ID: {s.studentId} • Roll: {s.rollNumber || '-'} • Class: {s.className || '-'} • Section: {s.section || '-'}</div>
                     <Button className="mt-2 bg-earth-orange hover:bg-earth-orange-hover" onClick={() => approve('student', s.id)}>Approve</Button>
                   </div>
@@ -243,6 +287,7 @@ export default function AdminPortal() {
       {tab === 8 && (
         <GlobalAssignments />
       )}
+      </div>
     </div>
   );
 }

@@ -148,7 +148,17 @@ export default function TeacherSignupWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
+    <div 
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: `url('/api/image/stunning-high-resolution-nature-and-landscape-backgrounds-breathtaking-scenery-in-hd-photo.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="relative z-10">
       <h1 className="text-3xl font-bold mb-4">Teacher Sign Up</h1>
       <div className="max-w-2xl space-y-6">
         <section className="space-y-3">
@@ -196,6 +206,7 @@ export default function TeacherSignupWizard() {
           </Button>
           <p className="mt-2 text-earth-muted text-sm">After submission, your application will be pending until an admin approves it.</p>
         </div>
+      </div>
       </div>
     </div>
   );

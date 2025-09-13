@@ -100,11 +100,29 @@ export default function QuizzesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Quizzes</h1>
-        {role !== 'student' && <div className="text-sm text-earth-muted">Sign in as a student to attempt quizzes.</div>}
-      </div>
+    <div 
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: 'url(/api/image/pngtree-abstract-cloudy-background-beautiful-natural-streaks-of-sky-and-clouds-red-image_15684333.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better text visibility */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      {/* Content */}
+      <div className="relative z-10 max-w-6xl mx-auto">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white/90">Quizzes</h1>
+              <p className="mt-1 text-white/70">Test your environmental knowledge</p>
+            </div>
+            {role !== 'student' && <div className="text-sm text-white/70">Sign in as a student to attempt quizzes.</div>}
+          </div>
+        </div>
 
       {!active ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -134,6 +152,7 @@ export default function QuizzesPage() {
           />
         </Section>
       )}
+      </div>
     </div>
   );
 }
@@ -141,29 +160,40 @@ export default function QuizzesPage() {
 function Section({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-xl font-semibold mb-3">{title}</h2>
-      <div className="p-4 rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)]">{children}</div>
+      <h2 className="text-xl font-semibold mb-3 text-white/90">{title}</h2>
+      <div className="p-4 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl">{children}</div>
     </section>
   );
 }
 
 function QuizGrid({ list, onStart }: { list: any[]; onStart: (q:any)=>void }) {
-  if (!list || list.length === 0) return <p className="text-sm text-earth-muted">No quizzes yet.</p>;
+  if (!list || list.length === 0) return <p className="text-sm text-white/60">No quizzes yet.</p>;
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {list.map((q) => (
-        <div key={q.id} className="relative overflow-hidden rounded-xl border border-[var(--earth-border)] bg-gradient-to-br from-[var(--earth-card)] to-transparent hover:to-white/5 transition">
+        <div key={q.id} className="relative overflow-hidden rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl hover:bg-white/20 transition shadow-xl">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none" />
           <div className="p-4">
-            <div className="text-lg font-semibold">{q.title}</div>
-            {q.description && <div className="text-sm text-earth-muted line-clamp-2">{q.description}</div>}
-            <div className="text-xs text-earth-muted mt-1">{q.points} pts • {(q.questions?.length||0)} questions</div>
-            {q._attempt && <div className="text-xs text-emerald-400 mt-1">Attempted • {q._attempt.scorePercent}%</div>}
+            <div className="text-lg font-semibold text-white/90">{q.title}</div>
+            {q.description && <div className="text-sm text-white/70 line-clamp-2">{q.description}</div>}
+            <div className="text-xs text-white/60 mt-1">{q.points} pts • {(q.questions?.length||0)} questions</div>
+            {q._attempt && <div className="text-xs text-emerald-300 mt-1">Attempted • {q._attempt.scorePercent}%</div>}
             <div className="mt-3">
               {q._attempt ? (
-                <Button variant="secondary" onClick={()=>onStart(q)}>Review</Button>
+                <Button 
+                  variant="secondary" 
+                  onClick={()=>onStart(q)}
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                >
+                  Review
+                </Button>
               ) : (
-                <Button className="bg-earth-orange hover:bg-earth-orange-hover" onClick={()=>onStart(q)}>Start</Button>
+                <Button 
+                  className="bg-blue-500/80 hover:bg-blue-600/80 text-white border border-blue-400/50" 
+                  onClick={()=>onStart(q)}
+                >
+                  Start
+                </Button>
               )}
             </div>
           </div>
@@ -184,15 +214,15 @@ function QuizRunner({ quiz, idx, answers, onSelect, onNext, onPrev, onExit, onSu
       <div className="absolute -top-6 -left-6 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl" />
       <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-cyan-500/10 blur-2xl" />
       <div className="flex items-center justify-between mb-3">
-        <div className="text-sm text-earth-muted">Question {safeIdx+1} of {total}</div>
-        <button className="text-xs text-earth-muted underline" onClick={onExit}>Exit</button>
+        <div className="text-sm text-white/60">Question {safeIdx+1} of {total}</div>
+        <button className="text-xs text-white/60 underline hover:text-white/80" onClick={onExit}>Exit</button>
       </div>
-      <div className="p-4 rounded-lg border border-[var(--earth-border)] bg-white/5 backdrop-blur-sm shadow-2xl transition-transform duration-300">
+      <div className="p-4 rounded-lg border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl transition-transform duration-300">
         {!q ? (
           <div className="text-sm text-red-300">No questions available.</div>
         ) : (
         <>
-        <div className="text-lg font-semibold mb-3 animate-fade-in">{q.text}</div>
+        <div className="text-lg font-semibold mb-3 animate-fade-in text-white/90">{q.text}</div>
         <div className="grid gap-2">
           {q.options.map((opt: string, i: number) => {
             const selected = answers[safeIdx] === i;
@@ -201,9 +231,9 @@ function QuizRunner({ quiz, idx, answers, onSelect, onNext, onPrev, onExit, onSu
             const isWrongSelected = !!rd && rd.selected === i && !rd.isCorrect;
             const normalSelected = selected && !locked;
             return (
-              <button key={i} disabled={locked} onClick={()=>onSelect(i)} className={`text-left rounded-lg px-4 py-3 border transition-all ${normalSelected ? 'bg-emerald-600/40 border-emerald-400' : 'border-[var(--earth-border)] hover:bg-white/5'} ${(locked && reviewOpen && isAnswer) ? 'bg-emerald-600/30 border-emerald-400' : ''} ${(locked && reviewOpen && isWrongSelected) ? 'bg-red-600/20 border-red-400' : ''}`}>
+              <button key={i} disabled={locked} onClick={()=>onSelect(i)} className={`text-left rounded-lg px-4 py-3 border transition-all text-white/90 ${normalSelected ? 'bg-emerald-600/40 border-emerald-400' : 'border-white/30 hover:bg-white/10'} ${(locked && reviewOpen && isAnswer) ? 'bg-emerald-600/30 border-emerald-400' : ''} ${(locked && reviewOpen && isWrongSelected) ? 'bg-red-600/20 border-red-400' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <span className={`h-6 w-6 rounded-full grid place-items-center text-xs ${normalSelected ? 'bg-emerald-400 text-black' : (locked && reviewOpen && isAnswer) ? 'bg-emerald-400 text-black' : (locked && reviewOpen && isWrongSelected) ? 'bg-red-400 text-black' : 'bg-white/10'}`}>{i+1}</span>
+                  <span className={`h-6 w-6 rounded-full grid place-items-center text-xs ${normalSelected ? 'bg-emerald-400 text-black' : (locked && reviewOpen && isAnswer) ? 'bg-emerald-400 text-black' : (locked && reviewOpen && isWrongSelected) ? 'bg-red-400 text-black' : 'bg-white/20 text-white'}`}>{i+1}</span>
                   <span>{opt}</span>
                 </div>
               </button>
@@ -211,32 +241,59 @@ function QuizRunner({ quiz, idx, answers, onSelect, onNext, onPrev, onExit, onSu
           })}
         </div>
         <div className="flex items-center justify-between mt-4">
-          <Button variant="secondary" onClick={onPrev} disabled={safeIdx===0}>Prev</Button>
+          <Button 
+            variant="secondary" 
+            onClick={onPrev} 
+            disabled={safeIdx===0}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+          >
+            Prev
+          </Button>
           {locked ? (
-            <Button className="bg-earth-orange hover:bg-earth-orange-hover" onClick={onNext} disabled={safeIdx >= total - 1}>Next</Button>
+            <Button 
+              className="bg-blue-500/80 hover:bg-blue-600/80 text-white border border-blue-400/50" 
+              onClick={onNext} 
+              disabled={safeIdx >= total - 1}
+            >
+              Next
+            </Button>
           ) : (
             safeIdx < total - 1 ? (
-              <Button className="bg-earth-orange hover:bg-earth-orange-hover" onClick={onNext}>Next</Button>
+              <Button 
+                className="bg-blue-500/80 hover:bg-blue-600/80 text-white border border-blue-400/50" 
+                onClick={onNext}
+              >
+                Next
+              </Button>
             ) : (
-              <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={onSubmit}>Submit</Button>
+              <Button 
+                className="bg-emerald-500/80 hover:bg-emerald-600/80 text-white border border-emerald-400/50" 
+                onClick={onSubmit}
+              >
+                Submit
+              </Button>
             )
           )}
         </div>
         {score != null && (
           <div className="mt-3 flex items-center justify-center gap-4 animate-fade-in">
             <div className="text-center">
-              <div className="text-sm text-earth-muted">Your score</div>
-              <div className="text-3xl font-bold">{score}%</div>
+              <div className="text-sm text-white/60">Your score</div>
+              <div className="text-3xl font-bold text-white/90">{score}%</div>
             </div>
             {locked && results && (
-              <Button variant="secondary" onClick={onToggleReview}>
+              <Button 
+                variant="secondary" 
+                onClick={onToggleReview}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
                 {reviewOpen ? 'Hide Review' : 'Review Answers'}
               </Button>
             )}
           </div>
         )}
         {locked && reviewOpen && results && (
-          <div className="mt-3 text-center text-sm text-earth-muted">
+          <div className="mt-3 text-center text-sm text-white/70">
             {results.map((r) => {
               const inRange = r.index >= 0 && r.index < total;
               const options = inRange ? quiz.questions[r.index].options : [];

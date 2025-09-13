@@ -28,53 +28,60 @@ export default function TeacherAppShell() {
   }, []);
   const [tab, setTab] = useState(initialTab);
 
-  useEffect(() => {
-    if (role !== "teacher") {
-      // Access guard (kept simple)
-    }
-  }, [role]);
-
-  const Guard = useMemo(() => {
-    if (role !== "teacher") {
-      return (
-        <div className="min-h-screen bg-space-gradient text-white p-6 flex flex-col items-center justify-center">
-          <h1 className="text-3xl font-bold mb-4">Teacher Portal</h1>
-          <p className="text-earth-muted">Access denied. Please log in as a teacher.</p>
-        </div>
-      );
-    }
-    return null;
-  }, [role]);
-
-  if (Guard) return Guard;
-
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Teacher Portal</h1>
-          <p className="text-earth-muted text-sm">Welcome, @{username}</p>
+    <div 
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: 'url(/api/image/pngtree-cb-background-hd-2022-download-picsart-and-snapseed-photo-editing-picture-image_15546523.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better text visibility */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white/90">Teacher Portal</h1>
+              <p className="text-white/70 text-sm">Welcome, @{username}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="secondary" 
+                onClick={clear}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={clear}>Logout</Button>
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {tabs.map((t, i) => (
+            <Button 
+              key={t} 
+              variant={tab === i ? "default" : "secondary"} 
+              onClick={() => setTab(i)}
+              className={tab === i ? "bg-white/20 text-white" : "bg-white/10 hover:bg-white/20 text-white border-white/30"}
+            >
+              {t}
+            </Button>
+          ))}
         </div>
-      </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map((t, i) => (
-          <Button key={t} variant={tab === i ? "default" : "secondary"} onClick={() => setTab(i)}>
-            {t}
-          </Button>
-        ))}
+        {tab === 0 && <Overview />}
+        {tab === 1 && <Tasks />}
+        {tab === 2 && <Quizzes />}
+        {tab === 3 && <Assignments />}
+        {tab === 4 && <Students />}
+        {tab === 5 && <Announcements />}
+        {tab === 6 && <Profile />}
       </div>
-
-      {tab === 0 && <Overview />}
-      {tab === 1 && <Tasks />}
-      {tab === 2 && <Quizzes />}
-      {tab === 3 && <Assignments />}
-      {tab === 4 && <Students />}
-      {tab === 5 && <Announcements />}
-      {tab === 6 && <Profile />}
     </div>
   );
 }
@@ -82,8 +89,8 @@ export default function TeacherAppShell() {
 function Section({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-xl font-semibold mb-3">{title}</h2>
-      <div className="p-4 rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)]">
+      <h2 className="text-xl font-semibold mb-3 text-white/90">{title}</h2>
+      <div className="p-4 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl">
         {children}
       </div>
     </section>

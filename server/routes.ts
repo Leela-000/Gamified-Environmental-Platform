@@ -26,6 +26,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Serve any image from public folder safely
+  app.get('/api/image/:file', (req, res) => {
+    const { file } = req.params;
+    // basic sanitization: only allow common image formats
+    if (!/^[A-Za-z0-9._()-]+\.(png|jpg|jpeg|gif|webp)$/i.test(file)) {
+      return res.status(400).json({ error: 'Invalid image filename' });
+    }
+
+    const filePath = path.join(process.cwd(), 'public', file);
+    res.type(path.extname(filePath));
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error serving image file:', err);
+        res.status(404).json({ error: 'Image not found' });
+      }
+    });
+  });
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

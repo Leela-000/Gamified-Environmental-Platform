@@ -250,23 +250,43 @@ export default function GamePlayPage() {
   }, [game?.id]);
 
   return (
-    <div className="relative min-h-screen bg-space-gradient text-white">
-  <Particles />
-  <ParallaxBlobs />
+    <div 
+      className="relative min-h-screen text-white"
+      style={{
+        backgroundImage: 'url(/api/image/background-pictures-nature-hd-images-1920x1200-wallpaper-preview.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better visibility */}
+      <div className="absolute inset-0 bg-black/40"></div>
+      <Particles />
+      <ParallaxBlobs />
+      
       {/* Exit button */}
       <div className="fixed top-4 right-4 z-50">
-        <Button variant="secondary" onClick={() => navigate('/games')}>Exit</Button>
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/games')}
+          className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+        >
+          Exit
+        </Button>
       </div>
+      
       {/* Title */}
-      <div className="pt-16 pb-6 text-center">
-        <div className="text-sm text-earth-muted">Eco-Game</div>
-        <h1 className="text-3xl font-semibold mt-1">{game?.icon || '🎮'} {game?.name || 'Play'}</h1>
-        <div className="text-xs text-earth-muted mt-1">Reward: +{game?.points ?? 0} pts · Difficulty: {game?.difficulty}</div>
+      <div className="relative z-10 pt-16 pb-6 text-center">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6 max-w-2xl mx-auto">
+          <div className="text-sm text-white/70">Eco-Game</div>
+          <h1 className="text-3xl font-semibold mt-1 text-white/90">{game?.icon || '🎮'} {game?.name || 'Play'}</h1>
+          <div className="text-xs text-white/60 mt-1">Reward: +{game?.points ?? 0} pts · Difficulty: {game?.difficulty}</div>
+        </div>
       </div>
 
       {/* Play surface */}
-      <div className="mx-auto max-w-4xl w-full">
-        <div className="m-4 rounded-2xl border border-[var(--earth-border)] bg-[var(--earth-card)]/70 backdrop-blur-md p-4 shadow-xl">
+      <div className="relative z-10 mx-auto max-w-4xl w-full">
+        <div className="m-4 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl p-6 shadow-xl">
           {body}
         </div>
       </div>
@@ -274,7 +294,7 @@ export default function GamePlayPage() {
       {/* Completion ribbon */}
       {completed && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-          <div className="px-4 py-2 rounded-full bg-emerald-500/90 text-white shadow-lg">
+          <div className="px-6 py-3 rounded-full bg-emerald-500/90 backdrop-blur-sm text-white shadow-xl border border-emerald-400/50">
             Completed! +{game?.points ?? 0} pts awarded.
           </div>
         </div>

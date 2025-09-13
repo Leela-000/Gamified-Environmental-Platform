@@ -1,43 +1,60 @@
 import { useAuth } from "@/lib/auth";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Bell } from "lucide-react";
+import { createPortal } from "react-dom";
 
 export default function StudentAppShell() {
   const { role, username, clear } = useAuth();
   const [showProfileEditor, setShowProfileEditor] = useState(false);
 
-  const Guard = useMemo(() => {
-    if (role !== 'student') {
-      return (
-        <div className="min-h-screen bg-space-gradient text-white p-6 flex flex-col items-center justify-center">
-          <h1 className="text-3xl font-bold mb-4">Student Portal</h1>
-          <p className="text-earth-muted">Access denied. Please log in as a student.</p>
-        </div>
-      );
-    }
-    return null;
-  }, [role]);
-  if (Guard) return Guard;
-
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
-      <div className="flex items-center justify-between mb-6">
-  <h1 className="text-3xl font-bold">Student Portal</h1>
-        <div className="flex gap-2 items-center">
-          <NotificationsBell />
-          <Button variant="secondary" onClick={clear}>Logout</Button>
+    <div 
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: 'url(/api/image/nature-319.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better text visibility */}
+      <div className="absolute inset-0 bg-black/40"></div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-white/90">Student Portal</h1>
+            <div className="flex gap-2 items-center">
+              <NotificationsBell />
+              <Button 
+                variant="secondary" 
+                onClick={clear}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
 
       {!showProfileEditor ? <StudentProfileView /> : <StudentProfileEditor onClose={() => setShowProfileEditor(false)} />}
 
       {/* Bottom bar */}
       <div className="fixed bottom-4 left-0 right-0 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto rounded-full border border-[var(--earth-border)] bg-[var(--earth-card)] shadow-lg px-2 py-1">
-          <Button size="sm" variant="secondary" onClick={()=>setShowProfileEditor(true)}>Profile</Button>
+        <div className="pointer-events-auto rounded-full border border-white/30 bg-white/20 backdrop-blur-xl shadow-lg px-2 py-1">
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={()=>setShowProfileEditor(true)}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+          >
+            Profile
+          </Button>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -46,8 +63,8 @@ export default function StudentAppShell() {
 function Section({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-xl font-semibold mb-3">{title}</h2>
-      <div className="p-4 rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)]">{children}</div>
+      <h2 className="text-xl font-semibold mb-3 text-white/90">{title}</h2>
+      <div className="p-4 rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl">{children}</div>
     </section>
   );
 }
@@ -405,6 +422,9 @@ function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [unread, setUnread] = useState<number>(0);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState({ top: 0, right: 0 });
+  
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -418,38 +438,119 @@ function NotificationsBell() {
   }, [username]);
 
   const load = async () => {
-    const list = await fetch('/api/notifications', { headers: { 'X-Username': username || '' } }).then(r => r.json());
-    setItems(Array.isArray(list) ? list : []);
-  };
-  const toggle = async () => {
-    const next = !open;
-    setOpen(next);
-    if (next) {
-      await load();
-      await fetch('/api/notifications/read', { method: 'POST', headers: { 'X-Username': username || '' } });
-      setUnread(0);
+    try {
+      const list = await fetch('/api/notifications', { headers: { 'X-Username': username || '' } }).then(r => r.json());
+      setItems(Array.isArray(list) ? list : []);
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+      setItems([]);
     }
   };
-  return (
-    <div className="relative">
-      <button onClick={toggle} className="relative h-9 w-9 grid place-items-center rounded-md border border-[var(--earth-border)] bg-[var(--earth-card)] hover:bg-white/5">
-        <Bell size={16} />
-        {unread > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-[10px] grid place-items-center">{unread}</span>}
-      </button>
-      {open && (
-        <div className="absolute right-0 mt-2 w-72 max-h-80 overflow-auto rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)] shadow-lg z-10">
-          <div className="p-2 text-xs text-earth-muted">Notifications</div>
-          <div className="divide-y divide-[var(--earth-border)]">
-            {items.length === 0 && <div className="p-3 text-xs text-earth-muted">No notifications</div>}
-            {items.map((n, i) => (
-              <div key={i} className="p-3 text-sm">
-                <div>{n.message}</div>
-                <div className="text-[10px] text-earth-muted">{new Date(n.createdAt).toLocaleString()}</div>
-              </div>
-            ))}
-          </div>
+
+  const toggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const next = !open;
+    setOpen(next);
+    
+    if (next && buttonRef.current) {
+      // Calculate position relative to button
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+      
+      await load();
+      try {
+        await fetch('/api/notifications/read', { method: 'POST', headers: { 'X-Username': username || '' } });
+        setUnread(0);
+      } catch (error) {
+        console.error('Failed to mark notifications as read:', error);
+      }
+    }
+  };
+
+  const closeNotifications = () => {
+    setOpen(false);
+  };
+
+  const notificationPanel = open && (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-[9998]" 
+        onClick={closeNotifications}
+        aria-hidden="true"
+      />
+      
+      {/* Notification Panel */}
+      <div 
+        className="fixed w-80 max-h-96 overflow-hidden rounded-lg bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl z-[9999]"
+        style={{
+          top: position.top,
+          right: position.right
+        }}
+      >
+        <div className="p-3 text-sm font-medium text-white/90 border-b border-white/20">
+          Notifications
+          {unread > 0 && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">{unread} new</span>}
         </div>
-      )}
-    </div>
+        
+        <div className="max-h-80 overflow-y-auto">
+          {items.length === 0 ? (
+            <div className="p-4 text-center">
+              <div className="text-white/60 text-sm">📭</div>
+              <div className="text-white/70 text-sm mt-1">No notifications yet</div>
+              <div className="text-white/50 text-xs mt-1">We'll notify you about important updates</div>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/20">
+              {items.map((n, i) => (
+                <div key={i} className="p-3 hover:bg-white/10 transition-colors">
+                  <div className="text-sm text-white/90">{n.message}</div>
+                  <div className="text-xs text-white/60 mt-1">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {items.length > 0 && (
+          <div className="p-2 border-t border-white/20">
+            <button 
+              onClick={closeNotifications}
+              className="w-full text-xs text-white/70 hover:text-white/90 py-1"
+            >
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <button 
+        ref={buttonRef}
+        onClick={toggle} 
+        className="relative h-9 w-9 grid place-items-center rounded-md border border-white/30 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white transition-colors"
+        aria-label="Toggle notifications"
+      >
+        <Bell size={16} />
+        {unread > 0 && (
+          <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] grid place-items-center font-medium">
+            {unread > 99 ? '99+' : unread}
+          </span>
+        )}
+      </button>
+      
+      {/* Render notification panel in portal */}
+      {typeof window !== 'undefined' && notificationPanel && createPortal(notificationPanel, document.body)}
+    </>
   );
 }

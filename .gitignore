@@ -57,6 +57,6 @@ pids/
 *.seed
 
 # Lockfiles: keep exactly one if you use it (npm/yarn/pnpm). Uncomment the one you use and commit it.
-# package-lock.json (keeping this one since project uses npm)
+# package-lock.json
 # yarn.lock
 # pnpm-lock.yaml

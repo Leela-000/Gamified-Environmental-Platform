@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 
 export default function SignInPage() {
-  const { setSession } = useAuth();
+  const { setSession, role } = useAuth();
   const [, navigate] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,107 +16,172 @@ export default function SignInPage() {
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
-    // If navigated with ?role=admin, show a hint
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const q = new URLSearchParams(window.location.search);
-      if (q.get('role') === 'admin') setIsAdminMode(true);
+      if (q.get("role") === "admin") setIsAdminMode(true);
     }
   }, []);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (role) {
+      if (role === "admin") navigate("/admin");
+      else if (role === "teacher") navigate("/teacher");
+      else navigate("/student");
+    }
+  }, [role, navigate]);
 
   const signin = async () => {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-      if (!res.ok) throw new Error('Login failed');
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!res.ok) throw new Error("Login failed");
       const data = await res.json();
-      if (!data.ok) throw new Error('Invalid credentials or not approved yet');
-  setSession({ role: data.role, username: data.username });
-      if (data.role === 'admin') navigate('/admin');
-      else if (data.role === 'teacher') navigate('/teacher');
-      else navigate('/student');
+      if (!data.ok) throw new Error("Invalid credentials or not approved yet");
+      setSession({ role: data.role, username: data.username });
+      
+      // Small delay to ensure session is set
+      setTimeout(() => {
+        if (data.role === "admin") navigate("/admin");
+        else if (data.role === "teacher") navigate("/teacher");
+        else navigate("/student");
+      }, 100);
     } catch (e: any) {
-      // If login failed, detect if the application is pending
       try {
-        const st = await fetch(`/api/application-status/${encodeURIComponent(username)}`).then(r => r.json());
-        if (st?.status === 'pending') {
+        const st = await fetch(
+          `/api/application-status/${encodeURIComponent(username)}`
+        ).then((r) => r.json());
+        if (st?.status === "pending") {
           setPendingUser(username);
           setError(null);
         } else {
-          setError(e?.message || 'Login error');
+          setError(e?.message || "Login error");
         }
       } catch {
-        setError(e?.message || 'Login error');
+        setError(e?.message || "Login error");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Poll for approval when pending
-  useEffect(() => {
-    if (!pendingUser) return;
-    let timer: number | undefined;
-    let cancelled = false;
-    const tick = async () => {
-      if (cancelled) return;
-      setChecking(true);
-      try {
-        const st = await fetch(`/api/application-status/${encodeURIComponent(pendingUser)}`).then(r => r.json());
-        if (st?.status === 'approved') {
-          setChecking(false);
-          // Try logging in again with same credentials to route correctly
-          setPendingUser(null);
-          await signin();
-          return;
-        }
-      } catch {}
+  const checkStatus = async () => {
+    if (!username) return;
+    setChecking(true);
+    try {
+      const res = await fetch(
+        `/api/application-status/${encodeURIComponent(username)}`
+      );
+      const data = await res.json();
+      if (data.status === "approved") {
+        setPendingUser(null);
+        setError(null);
+      } else if (data.status === "rejected") {
+        setPendingUser(null);
+        setError("Your application was rejected.");
+      } else {
+        setError("Application is still pending approval.");
+      }
+    } catch {
+      setError("Could not check status.");
+    } finally {
       setChecking(false);
-      timer = window.setTimeout(tick, 3000);
-    };
-    tick();
-    return () => {
-      cancelled = true;
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [pendingUser]);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-space-gradient text-white p-6">
-      <h1 className="text-3xl font-bold">Sign In</h1>
-      {isAdminMode && (
-        <p className="mt-2 text-earth-muted text-sm">Admin sign-in: use username <span className="text-white">admin123</span> and your password.</p>
-      )}
-      <div className="mt-6 max-w-md space-y-3">
-        {pendingUser && (
-          <div className="p-3 rounded-lg bg-[var(--earth-card)] border border-[var(--earth-border)]">
-            <div className="font-medium">@{pendingUser}</div>
-            <div className="text-sm text-earth-muted">Your application is pending admin approval.</div>
-            <div className="text-xs text-earth-muted mt-1">We’ll check automatically and continue once approved{checking ? '…' : '.'}</div>
-            <div className="mt-2 flex gap-2">
-              <Button variant="secondary" onClick={() => setPendingUser(null)}>Back to Sign In</Button>
-              <Button variant="secondary" onClick={() => setPendingUser(pendingUser)} disabled>
-                {checking ? 'Checking…' : 'Waiting'}
+    <div
+      className="min-h-screen text-white p-6 relative"
+      style={{
+        backgroundImage: "url(/api/image/nature-319.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      <div className="relative z-10">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-8">
+            <h1 className="text-3xl font-bold text-white/90">
+              {isAdminMode ? "Admin Sign In" : "Sign In"}
+            </h1>
+            <p className="mt-2 text-white/70">
+              Enter your credentials to access your account.
+            </p>
+
+            {pendingUser && (
+              <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+                <div className="text-yellow-200 text-sm">
+                  Your application is pending approval. Check back later or click
+                  below to check status.
+                </div>
+                <Button
+                  className="mt-2 bg-yellow-500/80 hover:bg-yellow-600/80 text-white"
+                  disabled={checking}
+                  onClick={checkStatus}
+                >
+                  {checking ? "Checking..." : "Check Status"}
+                </Button>
+              </div>
+            )}
+
+            {error && (
+              <div className="mt-4 p-4 bg-red-500/20 border border-red-400/30 rounded-lg text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50"
+                  placeholder="Enter your username"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 backdrop-blur-sm focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50"
+                  placeholder="Enter your password"
+                />
+              </div>
+              <Button
+                className="w-full bg-blue-500/80 hover:bg-blue-600/80 text-white border border-blue-400/50"
+                disabled={loading || pendingUser !== null}
+                onClick={signin}
+              >
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </div>
+
+            <div className="text-white/70 text-sm mt-6 text-center">
+              Don't have an account?{" "}
+              <a
+                href="/signup"
+                className="text-white underline hover:text-white/80"
+              >
+                Sign Up
+              </a>
+            </div>
           </div>
-        )}
-        <label className="block">
-          <span className="block text-sm text-earth-muted mb-1">Username</span>
-          <input className="w-full rounded-lg px-3 py-2 text-[var(--foreground)]" value={username} onChange={(e) => setUsername(e.target.value)} />
-        </label>
-        <label className="block">
-          <span className="block text-sm text-earth-muted mb-1">Password</span>
-          <input type="password" className="w-full rounded-lg px-3 py-2 text-[var(--foreground)]" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </label>
-        {error && <div className="text-red-400 text-sm">{error}</div>}
-        <div className="pt-2">
-          <Button className="bg-earth-orange hover:bg-earth-orange-hover" onClick={signin} disabled={loading || !username || !password}>
-            {loading ? 'Signing in…' : 'Sign In'}
-          </Button>
-        </div>
-        <div className="text-earth-muted text-sm">
-          New here? <a href="/signup" className="text-white underline">Create an account</a>
         </div>
       </div>
     </div>

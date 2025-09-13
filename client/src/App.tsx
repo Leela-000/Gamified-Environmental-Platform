@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth";
+import { ProtectedRoute, AdminOnlyRoute, StudentOrTeacherRoute } from "@/components/ProtectedRoute";
 import Home from "@/pages/home";
 import IntegrationsPage from "@/pages/integrations";
 import NotFound from "@/pages/not-found";
@@ -32,20 +33,73 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/signin" component={SignInPage} />
       <Route path="/signup" component={SignUpPage} />
-      <Route path="/admin" component={AdminPortal} />
+      <Route path="/contact" component={ContactHelpPage} />
+      
+      {/* Admin only routes */}
+      <Route path="/admin">
+        <AdminOnlyRoute>
+          <AdminPortal />
+        </AdminOnlyRoute>
+      </Route>
+      
+      {/* Signup flows - no authentication required */}
       <Route path="/student/signup" component={StudentSignupWizard} />
       <Route path="/teacher/signup" component={TeacherSignupWizard} />
-      <Route path="/student" component={StudentAppShell} />
-      <Route path="/teacher" component={TeacherAppShell} />
-  <Route path="/games/play/:id" component={GamePlayPage} />
-  <Route path="/games" component={GamesPage} />
-      <Route path="/quizzes" component={QuizzesPage} />
-      <Route path="/leaderboard" component={LeaderboardPage} />
-      <Route path="/tasks" component={TasksPage} />
-  <Route path="/assignments" component={AssignmentsPage} />
-  <Route path="/announcements" component={AnnouncementsPage} />
-      <Route path="/contact" component={ContactHelpPage} />
-      <Route path="/integrations" component={IntegrationsPage} />
+      
+      {/* Role-specific app shells */}
+      <Route path="/student">
+        <ProtectedRoute allowedRoles={["student"]}>
+          <StudentAppShell />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher">
+        <ProtectedRoute allowedRoles={["teacher"]}>
+          <TeacherAppShell />
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Pages requiring authentication but available to both students and teachers */}
+      <Route path="/games/play/:id">
+        <StudentOrTeacherRoute>
+          <GamePlayPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/games">
+        <StudentOrTeacherRoute>
+          <GamesPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/quizzes">
+        <StudentOrTeacherRoute>
+          <QuizzesPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/leaderboard">
+        <StudentOrTeacherRoute>
+          <LeaderboardPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/tasks">
+        <StudentOrTeacherRoute>
+          <TasksPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/assignments">
+        <StudentOrTeacherRoute>
+          <AssignmentsPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/announcements">
+        <StudentOrTeacherRoute>
+          <AnnouncementsPage />
+        </StudentOrTeacherRoute>
+      </Route>
+      <Route path="/integrations">
+        <ProtectedRoute requireAuth={true}>
+          <IntegrationsPage />
+        </ProtectedRoute>
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );
