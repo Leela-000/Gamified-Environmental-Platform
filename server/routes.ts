@@ -834,6 +834,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(data);
   });
 
+  // Video Management Routes
+  
+  // Get all videos (public endpoint)
+  app.get('/api/videos', async (_req, res) => {
+    try {
+      const videos = await storage.getAllVideos();
+      res.json(videos);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      res.status(500).json({ error: 'Failed to fetch videos' });
+    }
+  });
+
+  // Get user's video progress and credits
+  app.get('/api/users/:username/credits', async (req, res) => {
+    try {
+      const credits = await storage.getUserCredits(req.params.username);
+      res.json(credits);
+    } catch (error) {
+      console.error('Error fetching user credits:', error);
+      res.status(500).json({ error: 'Failed to fetch user credits' });
+    }
+  });
+
+  // Award credits for watching a video
+  app.post('/api/videos/watch', async (req, res) => {
+    try {
+      const { videoId, username } = req.body;
+      const result = await storage.recordVideoWatch(username, videoId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error recording video watch:', error);
+      res.status(500).json({ error: 'Failed to record video watch' });
+    }
+  });
+
+  // Award credits endpoint
+  app.post('/api/videos/award-credits', async (req, res) => {
+    try {
+      const { username, videoId, credits } = req.body;
+      const result = await storage.awardCredits(username, videoId, credits);
+      res.json(result);
+    } catch (error) {
+      console.error('Error awarding credits:', error);
+      res.status(500).json({ error: 'Failed to award credits' });
+    }
+  });
+
+  // Fetch YouTube video metadata
+  app.post('/api/videos/youtube-metadata', async (req, res) => {
+    try {
+      const { url } = req.body;
+      const metadata = await storage.fetchYouTubeMetadata(url);
+      res.json(metadata);
+    } catch (error) {
+      console.error('Error fetching YouTube metadata:', error);
+      res.status(500).json({ error: 'Failed to fetch YouTube metadata' });
+    }
+  });
+
+  // Admin video management routes
+  app.get('/api/admin/videos', async (_req, res) => {
+    try {
+      const videos = await storage.getAllVideos();
+      res.json(videos);
+    } catch (error) {
+      console.error('Error fetching admin videos:', error);
+      res.status(500).json({ error: 'Failed to fetch videos' });
+    }
+  });
+
+  app.post('/api/admin/videos', async (req, res) => {
+    try {
+      const { title, description, type, url, thumbnail, credits, category, duration } = req.body;
+      const video = await storage.createVideo({
+        title,
+        description,
+        type,
+        url,
+        thumbnail,
+        credits: credits || 1,
+        uploadedBy: 'admin', // TODO: Get from authenticated user
+        category,
+        duration
+      });
+      res.json(video);
+    } catch (error) {
+      console.error('Error creating admin video:', error);
+      res.status(500).json({ error: 'Failed to create video' });
+    }
+  });
+
+  app.put('/api/admin/videos/:id', async (req, res) => {
+    try {
+      const { title, description, type, url, thumbnail, credits, category, duration } = req.body;
+      const video = await storage.updateVideo(req.params.id, {
+        title,
+        description,
+        type,
+        url,
+        thumbnail,
+        credits,
+        category,
+        duration
+      });
+      res.json(video);
+    } catch (error) {
+      console.error('Error updating admin video:', error);
+      res.status(500).json({ error: 'Failed to update video' });
+    }
+  });
+
+  app.delete('/api/admin/videos/:id', async (req, res) => {
+    try {
+      await storage.deleteVideo(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting admin video:', error);
+      res.status(500).json({ error: 'Failed to delete video' });
+    }
+  });
+
+  // Teacher video management routes
+  app.get('/api/teacher/videos', async (req, res) => {
+    try {
+      const videos = await storage.getTeacherVideos(req.query.teacherId as string);
+      res.json(videos);
+    } catch (error) {
+      console.error('Error fetching teacher videos:', error);
+      res.status(500).json({ error: 'Failed to fetch videos' });
+    }
+  });
+
+  app.post('/api/teacher/videos', async (req, res) => {
+    try {
+      const { title, description, type, url, thumbnail, credits, category, duration } = req.body;
+      const video = await storage.createVideo({
+        title,
+        description,
+        type,
+        url,
+        thumbnail,
+        credits: credits || 1,
+        uploadedBy: req.body.teacherId || 'teacher', // TODO: Get from authenticated user
+        category,
+        duration
+      });
+      res.json(video);
+    } catch (error) {
+      console.error('Error creating teacher video:', error);
+      res.status(500).json({ error: 'Failed to create video' });
+    }
+  });
+
+  app.put('/api/teacher/videos/:id', async (req, res) => {
+    try {
+      const { title, description, type, url, thumbnail, credits, category, duration, uploadedBy } = req.body;
+      const video = await storage.updateVideo(req.params.id, {
+        title,
+        description,
+        type,
+        url,
+        thumbnail,
+        credits,
+        category,
+        duration,
+        uploadedBy
+      });
+      res.json(video);
+    } catch (error) {
+      console.error('Error updating teacher video:', error);
+      res.status(500).json({ error: 'Failed to update video' });
+    }
+  });
+
+  app.delete('/api/teacher/videos/:id', async (req, res) => {
+    try {
+      await storage.deleteVideo(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting teacher video:', error);
+      res.status(500).json({ error: 'Failed to delete video' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

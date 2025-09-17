@@ -1,6 +1,7 @@
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Upload, Youtube, Video, Plus, Trash2, Edit3, Globe } from "lucide-react";
 
 export default function AdminPortal() {
   const { role, clear } = useAuth();
@@ -16,11 +17,12 @@ export default function AdminPortal() {
     'Manage Admin Accounts',
     'Manage All Accounts',
     'Challenges & Games',
-  'Quizzes Management',
-  'Schools & Colleges',
-  'Global Quizzes',
-  'Global Announcements',
-  'Global Assignments',
+    'Quizzes Management',
+    'Videos Management',
+    'Schools & Colleges',
+    'Global Quizzes',
+    'Global Announcements',
+    'Global Assignments',
   ];
 
   const load = async () => {
@@ -275,16 +277,20 @@ export default function AdminPortal() {
       )}
 
       {tab === 5 && (
-        <SchoolsManager />
+        <AdminVideosManager />
       )}
 
       {tab === 6 && (
+        <SchoolsManager />
+      )}
+
+      {tab === 7 && (
         <GlobalQuizzes />
       )}
-      {tab === 7 && (
+      {tab === 8 && (
         <GlobalAnnouncements />
       )}
-      {tab === 8 && (
+      {tab === 9 && (
         <GlobalAssignments />
       )}
       </div>
@@ -856,6 +862,468 @@ function GlobalAssignments() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AdminVideosManager() {
+  const { username } = useAuth();
+  const [videos, setVideos] = useState<any[]>([]);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<'youtube' | 'file'>('youtube');
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    category: 'Climate Change',
+    difficulty: 'Beginner',
+    credits: 1,
+    youtubeUrl: '',
+    thumbnailUrl: ''
+  });
+  const [isUploading, setIsUploading] = useState(false);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+
+  const categories = [
+    'Climate Change', 'Renewable Energy', 'Ocean Conservation', 
+    'Agriculture', 'Wildlife', 'Green Technology', 'Waste Management', 
+    'Water Conservation', 'Air Quality', 'Biodiversity'
+  ];
+
+  const loadVideos = async () => {
+    try {
+      const response = await fetch('/api/admin/videos', {
+        headers: { 'X-Username': username || '' }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setVideos(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to load videos:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadVideos();
+  }, [username]);
+
+  const resetForm = () => {
+    setForm({
+      title: '',
+      description: '',
+      category: 'Climate Change',
+      difficulty: 'Beginner',
+      credits: 1,
+      youtubeUrl: '',
+      thumbnailUrl: ''
+    });
+    setVideoFile(null);
+    setThumbnailFile(null);
+  };
+
+  const extractYouTubeVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  const generateYouTubeEmbedUrl = (url: string) => {
+    const videoId = extractYouTubeVideoId(url);
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+  };
+
+  const generateYouTubeThumbnail = (url: string) => {
+    const videoId = extractYouTubeVideoId(url);
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
+  };
+
+  const handleYouTubeUpload = async () => {
+    if (!form.title.trim() || !form.youtubeUrl.trim()) {
+      alert('Title and YouTube URL are required');
+      return;
+    }
+
+    const videoId = extractYouTubeVideoId(form.youtubeUrl);
+    if (!videoId) {
+      alert('Please enter a valid YouTube URL');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const videoData = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        difficulty: form.difficulty,
+        credits: form.credits,
+        embedUrl: generateYouTubeEmbedUrl(form.youtubeUrl),
+        thumbnail: form.thumbnailUrl || generateYouTubeThumbnail(form.youtubeUrl),
+        uploadedBy: username,
+        type: 'youtube'
+      };
+
+      const response = await fetch('/api/admin/videos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Username': username || ''
+        },
+        body: JSON.stringify(videoData)
+      });
+
+      if (response.ok) {
+        alert('YouTube video added successfully!');
+        resetForm();
+        setIsUploadModalOpen(false);
+        loadVideos();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to add YouTube video');
+      }
+    } catch (error) {
+      console.error('Error uploading YouTube video:', error);
+      alert('Failed to add YouTube video');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!form.title.trim() || !videoFile) {
+      alert('Title and video file are required');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('description', form.description);
+      formData.append('category', form.category);
+      formData.append('difficulty', form.difficulty);
+      formData.append('credits', form.credits.toString());
+      formData.append('uploadedBy', username || '');
+      formData.append('type', 'file');
+      formData.append('video', videoFile);
+      
+      if (thumbnailFile) {
+        formData.append('thumbnail', thumbnailFile);
+      }
+
+      const response = await fetch('/api/admin/videos/upload', {
+        method: 'POST',
+        headers: {
+          'X-Username': username || ''
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        alert('Video file uploaded successfully!');
+        resetForm();
+        setIsUploadModalOpen(false);
+        loadVideos();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to upload video file');
+      }
+    } catch (error) {
+      console.error('Error uploading video file:', error);
+      alert('Failed to upload video file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const deleteVideo = async (videoId: string) => {
+    if (!confirm('Are you sure you want to delete this video?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/videos/${videoId}`, {
+        method: 'DELETE',
+        headers: { 'X-Username': username || '' }
+      });
+
+      if (response.ok) {
+        alert('Video deleted successfully!');
+        loadVideos();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to delete video');
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      alert('Failed to delete video');
+    }
+  };
+
+  return (
+    <div className="space-y-6 relative z-10">
+      <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white/90 flex items-center gap-2">
+              <Video className="h-6 w-6 text-blue-400" />
+              Videos Management
+            </h2>
+            <p className="text-white/70 mt-1">Manage educational videos for students and teachers</p>
+          </div>
+          <Button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Video
+          </Button>
+        </div>
+
+        {/* Videos List */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-white/90">All Videos ({videos.length})</h3>
+          {videos.length === 0 ? (
+            <div className="text-center py-8 text-white/70">
+              <Video className="h-12 w-12 mx-auto mb-4 text-white/50" />
+              <p>No videos uploaded yet. Add your first video!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {videos.map((video) => (
+                <div key={video.id} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg overflow-hidden">
+                  <div className="aspect-video bg-cover bg-center relative" style={{ backgroundImage: `url(${video.thumbnail})` }}>
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                        {video.type === 'youtube' ? (
+                          <Youtube className="h-6 w-6 text-white" />
+                        ) : (
+                          <Video className="h-6 w-6 text-white" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-500/80 to-orange-500/80 text-white text-xs px-2 py-1 rounded-full">
+                      {video.credits} credits
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h4 className="font-semibold text-white/90 text-sm mb-1 line-clamp-2">{video.title}</h4>
+                    <p className="text-white/60 text-xs mb-2 line-clamp-2">{video.description}</p>
+                    <div className="flex items-center justify-between text-xs text-white/60 mb-3">
+                      <span>{video.category}</span>
+                      <span>{video.difficulty}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/50">By {video.uploadedBy}</span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => deleteVideo(video.id)}
+                        className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-400/30"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] p-4">
+          <div 
+            className="fixed inset-0 bg-transparent" 
+            onClick={() => setIsUploadModalOpen(false)}
+          ></div>
+          <div className="bg-gray-900/95 backdrop-blur-xl border border-white/30 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-[10000]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white/90">Add New Video</h3>
+              <Button
+                variant="secondary"
+                onClick={() => setIsUploadModalOpen(false)}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* Upload Type Selection */}
+            <div className="mb-6">
+              <div className="flex gap-2">
+                <Button
+                  variant={uploadType === 'youtube' ? 'default' : 'secondary'}
+                  onClick={() => setUploadType('youtube')}
+                  className={uploadType === 'youtube' 
+                    ? "bg-red-500/80 hover:bg-red-600/80 text-white"
+                    : "bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  }
+                >
+                  <Youtube className="h-4 w-4 mr-2" />
+                  YouTube Link
+                </Button>
+                <Button
+                  variant={uploadType === 'file' ? 'default' : 'secondary'}
+                  onClick={() => setUploadType('file')}
+                  className={uploadType === 'file' 
+                    ? "bg-blue-500/80 hover:bg-blue-600/80 text-white"
+                    : "bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  }
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </Button>
+              </div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white/90 text-sm mb-2">Title *</label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white placeholder-white/50"
+                  placeholder="Enter video title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/90 text-sm mb-2">Description</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white placeholder-white/50"
+                  placeholder="Enter video description"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-white/90 text-sm mb-2">Category</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white"
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category} className="bg-gray-800 text-white">
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-white/90 text-sm mb-2">Difficulty</label>
+                  <select
+                    value={form.difficulty}
+                    onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+                    className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white"
+                  >
+                    <option value="Beginner" className="bg-gray-800 text-white">Beginner</option>
+                    <option value="Intermediate" className="bg-gray-800 text-white">Intermediate</option>
+                    <option value="Advanced" className="bg-gray-800 text-white">Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-white/90 text-sm mb-2">Credits</label>
+                  <select
+                    value={form.credits}
+                    onChange={(e) => setForm({ ...form, credits: Number(e.target.value) })}
+                    className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white"
+                  >
+                    <option value={1} className="bg-gray-800 text-white">1 Credit</option>
+                    <option value={2} className="bg-gray-800 text-white">2 Credits</option>
+                  </select>
+                </div>
+              </div>
+
+              {uploadType === 'youtube' ? (
+                <>
+                  <div>
+                    <label className="block text-white/90 text-sm mb-2">YouTube URL *</label>
+                    <input
+                      type="url"
+                      value={form.youtubeUrl}
+                      onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
+                      className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white placeholder-white/50"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/90 text-sm mb-2">Custom Thumbnail URL (optional)</label>
+                    <input
+                      type="url"
+                      value={form.thumbnailUrl}
+                      onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
+                      className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white placeholder-white/50"
+                      placeholder="Leave empty to use YouTube thumbnail"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-white/90 text-sm mb-2">Video File *</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                      className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white/90 text-sm mb-2">Thumbnail Image (optional)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                      className="w-full rounded-lg px-3 py-2 bg-white/10 border border-white/20 text-white"
+                    />
+                    <p className="text-white/50 text-xs mt-1">If not provided, a frame from the video will be used</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Upload Button */}
+            <div className="flex gap-2 mt-6">
+              <Button
+                onClick={uploadType === 'youtube' ? handleYouTubeUpload : handleFileUpload}
+                disabled={isUploading}
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white flex items-center gap-2"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    {uploadType === 'youtube' ? <Youtube className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
+                    {uploadType === 'youtube' ? 'Add YouTube Video' : 'Upload Video File'}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setIsUploadModalOpen(false)}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

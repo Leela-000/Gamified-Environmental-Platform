@@ -30,5 +30,32 @@ export function initDb() {
 			status TEXT,
 			submitted_at INTEGER
 		);
+		CREATE TABLE IF NOT EXISTS videos (
+			id TEXT PRIMARY KEY,
+			title TEXT NOT NULL,
+			description TEXT,
+			type TEXT NOT NULL,
+			url TEXT NOT NULL,
+			thumbnail TEXT,
+			credits INTEGER NOT NULL DEFAULT 1,
+			uploaded_by TEXT NOT NULL,
+			uploaded_at INTEGER NOT NULL,
+			category TEXT,
+			duration INTEGER
+		);
+		CREATE TABLE IF NOT EXISTS user_video_progress (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			video_id TEXT NOT NULL,
+			watched INTEGER DEFAULT 0,
+			watched_at INTEGER,
+			credits_awarded INTEGER DEFAULT 0
+		);
+		CREATE TABLE IF NOT EXISTS user_credits (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL UNIQUE,
+			total_credits INTEGER NOT NULL DEFAULT 0,
+			last_updated INTEGER NOT NULL
+		);
 	`);
 }

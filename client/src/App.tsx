@@ -24,6 +24,8 @@ import StudentSignupWizard from "@/pages/student-signup";
 import TeacherSignupWizard from "@/pages/teacher-signup";
 import StudentAppShell from "@/pages/student";
 import TeacherAppShell from "@/pages/teacher";
+import VideosPage from "@/pages/videos";
+import PublicProfilePage from "@/pages/public-profile";
 import { AppHamburger } from "@/components/AppHamburger";
 
 function Router() {
@@ -89,6 +91,11 @@ function Router() {
           <AssignmentsPage />
         </StudentOrTeacherRoute>
       </Route>
+      <Route path="/videos">
+        <StudentOrTeacherRoute>
+          <VideosPage />
+        </StudentOrTeacherRoute>
+      </Route>
       <Route path="/announcements">
         <StudentOrTeacherRoute>
           <AnnouncementsPage />
@@ -99,6 +106,9 @@ function Router() {
           <IntegrationsPage />
         </ProtectedRoute>
       </Route>
+      
+      {/* Public profile view - no authentication required */}
+      <Route path="/profile/:profileId" component={PublicProfilePage} />
       
       <Route component={NotFound} />
     </Switch>

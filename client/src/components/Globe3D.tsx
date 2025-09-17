@@ -8,6 +8,9 @@ export function Globe3D() {
   const sceneRef = useRef<THREE.Scene>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
   const earthRef = useRef<THREE.Object3D>();
+  const atmosphereRef = useRef<THREE.Mesh>();
+  const outerGlowRef = useRef<THREE.Mesh>();
+  const brightRingRef = useRef<THREE.Mesh>();
   const isMouseDownRef = useRef(false);
   const mouseRef = useRef({ x: 0, y: 0 });
   const targetRotationRef = useRef({ x: 0, y: 0 });
@@ -245,7 +248,7 @@ export function Globe3D() {
           }
     );
 
-    // Atmosphere glow effect
+    // Enhanced atmosphere glow effect with bright outer ring
   const atmosphereGeometry = new THREE.SphereGeometry(2.2, 64, 32);
   const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
@@ -268,7 +271,76 @@ export function Globe3D() {
     });
 
   const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+
+    // Bright outer glow ring similar to the image
+    const outerGlowGeometry = new THREE.SphereGeometry(2.6, 64, 32);
+    const outerGlowMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        void main() {
+          float intensity = pow(0.8 - dot(vNormal, vec3(0, 0, 1.0)), 1.5);
+          float falloff = 1.0 - (length(vPosition) - 2.2) / 0.4;
+          falloff = clamp(falloff, 0.0, 1.0);
+          
+          // Create a bright cyan/blue glow like in the image
+          vec3 glowColor = vec3(0.4, 0.8, 1.0);
+          gl_FragColor = vec4(glowColor, intensity * falloff * 0.8);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+      transparent: true,
+      depthWrite: false
+    });
+
+    const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+
+    // Additional bright ring effect for more intensity
+    const ringGeometry = new THREE.RingGeometry(2.3, 2.8, 64);
+    const ringMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        void main() {
+          float distance = length(vUv - 0.5) * 2.0;
+          float ring = 1.0 - smoothstep(0.0, 0.3, abs(distance - 0.8));
+          ring *= smoothstep(0.95, 0.5, distance);
+          
+          vec3 ringColor = vec3(0.5, 0.9, 1.0);
+          gl_FragColor = vec4(ringColor, ring * 0.6);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const brightRing = new THREE.Mesh(ringGeometry, ringMaterial);
+    
+    atmosphereRef.current = atmosphere;
+    outerGlowRef.current = outerGlow;
+    brightRingRef.current = brightRing;
+    
     scene.add(atmosphere);
+    scene.add(outerGlow);
+    scene.add(brightRing);
 
     // Enhanced lighting setup for realistic Earth rendering
   const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -356,8 +428,20 @@ export function Globe3D() {
         earthRef.current.rotation.y = currentRotationRef.current.y;
       }
 
-      atmosphere.rotation.x = currentRotationRef.current.x;
-      atmosphere.rotation.y = currentRotationRef.current.y;
+      if (atmosphereRef.current) {
+        atmosphereRef.current.rotation.x = currentRotationRef.current.x;
+        atmosphereRef.current.rotation.y = currentRotationRef.current.y;
+      }
+      
+      // Rotate the glow effects with the Earth
+      if (outerGlowRef.current) {
+        outerGlowRef.current.rotation.x = currentRotationRef.current.x;
+        outerGlowRef.current.rotation.y = currentRotationRef.current.y;
+      }
+      
+      if (brightRingRef.current) {
+        brightRingRef.current.rotation.x = currentRotationRef.current.x;
+      }
 
       renderer.render(scene, camera);
     };

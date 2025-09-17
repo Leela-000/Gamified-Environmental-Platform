@@ -98,6 +98,16 @@ export interface IStorage {
   getAdminLeaderboardAnalytics(): Promise<{ activeSchoolsThisWeek: number; newStudentsThisWeek: number; totalEcoPointsThisWeek: number; inactiveSchools: Array<{ schoolId: string; schoolName: string }>; }>
   // Dev/demo data helpers
   seedSchoolsAndStudents(input: { schools: number; students: number; adminUsername?: string }): Promise<{ schoolsCreated: number; studentsCreated: number }>;
+  // Video Management
+  getAllVideos(): Promise<Video[]>;
+  getTeacherVideos(teacherId: string): Promise<Video[]>;
+  createVideo(input: { title: string; description?: string; type: 'youtube' | 'file'; url: string; thumbnail?: string; credits: number; uploadedBy: string; category?: string; duration?: number }): Promise<Video>;
+  updateVideo(id: string, updates: Partial<{ title: string; description: string; type: 'youtube' | 'file'; url: string; thumbnail: string; credits: number; category: string; duration: number; uploadedBy: string }>): Promise<Video>;
+  deleteVideo(id: string): Promise<void>;
+  getUserCredits(username: string): Promise<{ totalCredits: number; lastUpdated: number }>;
+  recordVideoWatch(username: string, videoId: string): Promise<{ success: boolean; creditsAwarded: number }>;
+  awardCredits(username: string, videoId: string, credits: number): Promise<{ success: boolean; newTotal: number }>;
+  fetchYouTubeMetadata(url: string): Promise<{ title: string; description: string; thumbnail: string; duration?: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -120,6 +130,9 @@ export class MemStorage implements IStorage {
   private games: Map<string, Game>;
   private notifications: Map<string, NotificationItem>;
   private lastGamePlay: Map<string, number>; // key: studentId|gameId -> ts
+  private videos: Map<string, Video>;
+  private userVideoProgress: Map<string, UserVideoProgress>;
+  private userCredits: Map<string, UserCredits>;
   private dataFile: string;
 
   constructor() {
@@ -142,6 +155,9 @@ export class MemStorage implements IStorage {
   this.games = new Map();
   this.notifications = new Map();
   this.lastGamePlay = new Map();
+  this.videos = new Map();
+  this.userVideoProgress = new Map();
+  this.userCredits = new Map();
   this.dataFile = path.join(process.cwd(), 'server', 'data.json');
 
     // Load from disk if available; otherwise seed defaults and save
@@ -166,6 +182,9 @@ export class MemStorage implements IStorage {
   for (const gp of raw.gamePlays ?? []) this.gamePlays.set(gp.id, gp);
   for (const g of raw.games ?? []) this.games.set(g.id, g);
   for (const n of raw.notifications ?? []) this.notifications.set(n.id, n);
+  for (const v of raw.videos ?? []) this.videos.set(v.id, v);
+  for (const p of raw.userVideoProgress ?? []) this.userVideoProgress.set(p.id, p);
+  for (const c of raw.userCredits ?? []) this.userCredits.set(c.id, c);
   // load announcements/assignments with default visibility
   for (const a of raw.announcements ?? []) this.announcements.set(a.id, { ...a, visibility: (a as any).visibility ?? 'school' });
   for (const a of raw.assignments ?? []) this.assignments.set(a.id, { ...a, visibility: (a as any).visibility ?? 'school' });
@@ -535,6 +554,9 @@ export class MemStorage implements IStorage {
   gamePlays: Array.from(this.gamePlays.values()),
   games: Array.from(this.games.values()),
   notifications: Array.from(this.notifications.values()),
+  videos: Array.from(this.videos.values()),
+  userVideoProgress: Array.from(this.userVideoProgress.values()),
+  userCredits: Array.from(this.userCredits.values()),
     };
     try {
       fs.writeFileSync(this.dataFile, JSON.stringify(payload, null, 2), 'utf-8');
@@ -2040,6 +2062,160 @@ export class MemStorage implements IStorage {
     this.save();
     return { ok: true as const };
   }
+
+  // ===== Video Management =====
+  async getAllVideos(): Promise<Video[]> {
+    return Array.from(this.videos.values()).sort((a, b) => b.uploadedAt - a.uploadedAt);
+  }
+
+  async getTeacherVideos(teacherId: string): Promise<Video[]> {
+    return Array.from(this.videos.values())
+      .filter(v => v.uploadedBy === teacherId)
+      .sort((a, b) => b.uploadedAt - a.uploadedAt);
+  }
+
+  async createVideo(input: { title: string; description?: string; type: 'youtube' | 'file'; url: string; thumbnail?: string; credits: number; uploadedBy: string; category?: string; duration?: number }): Promise<Video> {
+    const video: Video = {
+      id: randomUUID(),
+      title: input.title,
+      description: input.description,
+      type: input.type,
+      url: input.url,
+      thumbnail: input.thumbnail,
+      credits: input.credits,
+      uploadedBy: input.uploadedBy,
+      uploadedAt: Date.now(),
+      category: input.category,
+      duration: input.duration,
+    };
+    this.videos.set(video.id, video);
+    this.save();
+    return video;
+  }
+
+  async updateVideo(id: string, updates: Partial<{ title: string; description: string; type: 'youtube' | 'file'; url: string; thumbnail: string; credits: number; category: string; duration: number; uploadedBy: string }>): Promise<Video> {
+    const video = this.videos.get(id);
+    if (!video) throw new Error('Video not found');
+    
+    const updated: Video = { ...video, ...updates };
+    this.videos.set(id, updated);
+    this.save();
+    return updated;
+  }
+
+  async deleteVideo(id: string): Promise<void> {
+    this.videos.delete(id);
+    // Also delete related progress records
+    const progressToDelete: string[] = [];
+    this.userVideoProgress.forEach((progress, progressId) => {
+      if (progress.videoId === id) {
+        progressToDelete.push(progressId);
+      }
+    });
+    progressToDelete.forEach(progressId => this.userVideoProgress.delete(progressId));
+    this.save();
+  }
+
+  async getUserCredits(username: string): Promise<{ totalCredits: number; lastUpdated: number }> {
+    const entry = this.findUserEntryByUsername(username);
+    if (!entry) return { totalCredits: 0, lastUpdated: Date.now() };
+    
+    const [userId] = entry;
+    const userCredits = Array.from(this.userCredits.values()).find(c => c.userId === userId);
+    
+    if (!userCredits) {
+      return { totalCredits: 0, lastUpdated: Date.now() };
+    }
+    
+    return {
+      totalCredits: userCredits.totalCredits,
+      lastUpdated: userCredits.lastUpdated,
+    };
+  }
+
+  async recordVideoWatch(username: string, videoId: string): Promise<{ success: boolean; creditsAwarded: number }> {
+    const entry = this.findUserEntryByUsername(username);
+    if (!entry) return { success: false, creditsAwarded: 0 };
+    
+    const [userId] = entry;
+    const video = this.videos.get(videoId);
+    if (!video) return { success: false, creditsAwarded: 0 };
+    
+    // Check if already watched
+    const existingProgress = Array.from(this.userVideoProgress.values())
+      .find(p => p.userId === userId && p.videoId === videoId);
+    
+    if (existingProgress && existingProgress.watched) {
+      return { success: true, creditsAwarded: 0 }; // Already watched
+    }
+    
+    // Record the watch
+    const progressId = existingProgress?.id || randomUUID();
+    const progress: UserVideoProgress = {
+      id: progressId,
+      userId,
+      videoId,
+      watched: true,
+      watchedAt: Date.now(),
+      creditsAwarded: !existingProgress || !existingProgress.creditsAwarded,
+    };
+    
+    this.userVideoProgress.set(progressId, progress);
+    
+    // Award credits if first time watching
+    let creditsAwarded = 0;
+    if (!existingProgress || !existingProgress.creditsAwarded) {
+      creditsAwarded = video.credits;
+      await this.awardCredits(username, videoId, creditsAwarded);
+    }
+    
+    this.save();
+    return { success: true, creditsAwarded };
+  }
+
+  async awardCredits(username: string, videoId: string, credits: number): Promise<{ success: boolean; newTotal: number }> {
+    const entry = this.findUserEntryByUsername(username);
+    if (!entry) return { success: false, newTotal: 0 };
+    
+    const [userId] = entry;
+    let userCredits = Array.from(this.userCredits.values()).find(c => c.userId === userId);
+    
+    if (!userCredits) {
+      userCredits = {
+        id: randomUUID(),
+        userId,
+        totalCredits: 0,
+        lastUpdated: Date.now(),
+      };
+    }
+    
+    userCredits.totalCredits += credits;
+    userCredits.lastUpdated = Date.now();
+    
+    this.userCredits.set(userCredits.id, userCredits);
+    this.save();
+    
+    return { success: true, newTotal: userCredits.totalCredits };
+  }
+
+  async fetchYouTubeMetadata(url: string): Promise<{ title: string; description: string; thumbnail: string; duration?: number }> {
+    // Extract video ID from YouTube URL
+    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
+    if (!videoIdMatch) {
+      throw new Error('Invalid YouTube URL');
+    }
+    
+    const videoId = videoIdMatch[1];
+    
+    // For demo purposes, return mock metadata
+    // In a real app, you would use the YouTube Data API
+    return {
+      title: `Video ${videoId}`,
+      description: 'Environmental education video from YouTube',
+      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+      duration: 300, // 5 minutes default
+    };
+  }
 }
 
 export const storage = new MemStorage();
@@ -2269,4 +2445,35 @@ export type NotificationItem = {
   type: 'info' | 'task' | 'quiz' | 'announcement' | 'badge';
   createdAt: number;
   readAt?: number;
+};
+
+// Video Management Types
+export type Video = {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'youtube' | 'file';
+  url: string; // YouTube URL or file path
+  thumbnail?: string; // Thumbnail URL or path
+  credits: number; // Credits awarded for watching
+  uploadedBy: string; // User ID of uploader
+  uploadedAt: number;
+  category?: string; // Optional categorization
+  duration?: number; // Duration in seconds (for files)
+};
+
+export type UserVideoProgress = {
+  id: string;
+  userId: string;
+  videoId: string;
+  watched: boolean;
+  watchedAt?: number;
+  creditsAwarded: boolean;
+};
+
+export type UserCredits = {
+  id: string;
+  userId: string;
+  totalCredits: number;
+  lastUpdated: number;
 };

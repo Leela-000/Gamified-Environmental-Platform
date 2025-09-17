@@ -92,11 +92,12 @@ export default function Home() {
           <div className="lg:col-span-3 xl:col-span-4 space-y-6 text-center lg:text-left pl-12 lg:pl-0 relative z-30">
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                Save the<br />
-                <span className="text-earth-cyan">earth</span>
+                ECO-GENIUS<br />
+                <span className="text-earth-cyan">ACADEMY</span>
               </h1>
               <p className="text-earth-muted text-base md:text-lg leading-relaxed max-w-md mx-auto lg:mx-0">
-                Join the fight in a race to protect and preserve our planet. From global warming to the protection of endangered wildlife, we cover all topics.
+                Master Quests. Unlock Knowledge.<br />
+                Become a Planet Hero.
               </p>
             </div>
             <Button 
@@ -105,7 +106,7 @@ export default function Home() {
               data-testid="button-watch-video"
             >
               <Play className="h-4 w-4" />
-              <span>WATCH VIDEO</span>
+              <span>START YOUR JOURNEY</span>
             </Button>
           </div>
 
